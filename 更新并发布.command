@@ -12,6 +12,26 @@ pause_exit() {
   exit "${1:-0}"
 }
 
+# 如果 git 异常退出留下了 index.lock，就清掉它（先确认没有进程占用）
+clean_stale_lock() {
+  local L="$ROOT/.git/index.lock"
+  [ -f "$L" ] || return 0
+  # 有进程正开着这个锁文件 → 说明真的有 git 在跑，不能删
+  if command -v lsof >/dev/null 2>&1 && lsof "$L" >/dev/null 2>&1; then
+    echo "⚠️ 似乎有另一个 git 进程正在操作本仓库，请稍后重试。"
+    return 1
+  fi
+  # 超过 3 秒且没人占用，视为残留
+  local MTIME NOW AGE
+  MTIME="$(stat -f %m "$L" 2>/dev/null || echo 0)"
+  NOW="$(date +%s)"
+  AGE=$(( NOW - MTIME ))
+  if [ "$AGE" -gt 3 ]; then
+    rm -f "$L" && echo "（已清理上次残留的 index.lock）"
+  fi
+  return 0
+}
+
 # ---------- 1. 找 python3 ----------
 PY=""
 for p in python3 /usr/bin/python3 /usr/local/bin/python3 /opt/homebrew/bin/python3; do
@@ -37,11 +57,21 @@ EMAIL="$(git config user.email)"
 [ -z "$NAME" ] && { NAME="isawang2023"; git config user.name "$NAME"; }
 [ -z "$EMAIL" ] && { EMAIL="138577286+isawang2023@users.noreply.github.com"; git config user.email "$EMAIL"; }
 
-git add -A
+clean_stale_lock || pause_exit 1
+if ! git add -A; then
+  echo "❌ git add 失败（上面有报错），已中止。"
+  echo "   可尝试：在终端运行  rm -f .git/index.lock  后重试。"
+  pause_exit 1
+fi
+
 if git diff --cached --quiet; then
   echo "没有新改动，跳过提交。"
 else
-  git commit -q -m "更新学习内容 $(date '+%Y-%m-%d %H:%M')" && echo "已提交：$(git log --oneline -1)"
+  if ! git commit -q -m "更新学习内容 $(date '+%Y-%m-%d %H:%M')"; then
+    echo "❌ 提交失败（上面有报错），已中止。"
+    pause_exit 1
+  fi
+  echo "已提交：$(git log --oneline -1)"
 fi
 
 # ---------- 3. 推到主分支 ----------

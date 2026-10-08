@@ -501,7 +501,7 @@ def build():
 
     # 使用说明页（自动追加）
     help_html = """
-<p>这个网站是<strong>自动生成</strong>的，源文件是本目录下的 Obsidian 笔记（.md）。更新流程只有三步：</p>
+<p>这个网站是<strong>自动生成</strong>的，源文件是本目录下的 Obsidian 笔记（.md）。在 Obsidian 里改完 md，双击一次 <code>更新并发布.command</code> 就完成重建与上线。</p>
 <div class="callout co-tip"><summary>…</summary></div>
 """
     help_body = """
@@ -509,7 +509,8 @@ def build():
 <li><strong>在 Obsidian 里随便改</strong>：编辑 L1–L4、判断卡、术语表……新增或删除 md 文件都行（<code>归档/</code> 里的不会被收录）。</li>
 <li><strong>重建网站</strong>：双击本目录下的 <code>重建学习网站.command</code>（或在终端运行 <code>python3 build.py</code>）。</li>
 <li><strong>刷新浏览器</strong>，完事。</li>
-<li><strong>同步到线上</strong>：<code>git add -A &amp;&amp; git commit -m "更新" &amp;&amp; git push</code>，GitHub Pages 会自动重建线上站点。</li>
+<li><strong>发布到线上</strong>：双击 <code>更新并发布.command</code>（= 重建 + 提交 + 推送 main + 同步 <code>gh-pages</code> 发布分支），约 1 分钟后线上更新。</li>
+<li><strong>只想本地看看</strong>：双击 <code>重建学习网站.command</code> 即可，它不碰 GitHub。</li>
 </ol>
 <p>规则：</p>
 <ul>
@@ -518,6 +519,7 @@ def build():
 <li>指向 <code>AI-Agents-in-Depth-zh-CN.pdf#page=N</code> 的链接会直接打开本地 PDF 并跳到对应页。</li>
 <li>网站是单文件、离线可用，可以拷到任何地方双击打开（同目录保留 PDF 即可让深链生效）。</li>
 <li>线上地址：<code>https://isawang2023.github.io/agent-ai-course/</code>，已设 <code>noindex</code>，搜索引擎不会收录（可在 <code>build.py</code> 顶部用 <code>NOINDEX</code> 开关调整）。</li>
+<li>GitHub Pages 从 <code>gh-pages</code> 分支取网站，所以<strong>只 push main 不会让线上更新</strong>——发布一定要用 <code>更新并发布.command</code>。</li>
 </ul>
 """
     data.append({

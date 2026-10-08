@@ -35,7 +35,12 @@
 python3 build.py          # 生成 index.html
 ```
 
-或在 Finder 里双击 `重建学习网站.command`（自动构建并打开）。
+或在 Finder 里双击 `.command` 脚本：
+
+| 脚本 | 作用 |
+|---|---|
+| `重建学习网站.command` | 只在本机重建并打开网站，不碰 GitHub |
+| `更新并发布.command` | 重建 → 提交 → 推送 main → 同步 gh-pages 发布分支（线上更新用这个） |
 
 网站特性：侧边栏导航、首页课程地图、勾选进度（浏览器本地持久化）、
 全文搜索（`/` 快捷键）、Obsidian callout 渲染、书页 PDF 深链、明暗主题。
@@ -54,19 +59,23 @@ python3 build.py          # 生成 index.html
 ## 更新流程
 
 1. 在 Obsidian 里编辑 Markdown
-2. 双击 `重建学习网站.command` 重建网站
-3. 提交并推送
+2. 双击 `更新并发布.command`（重建 + 提交 + 推送 + 发布）
+
+手动等价操作：
 
 ```bash
-git add -A
-git commit -m "更新 L3 判断层"
-git push
+python3 build.py
+git add -A && git commit -m "更新 L3 判断层"
+git push origin main
+# 发布分支（Pages 从这里取站点，只放 index.html + .nojekyll）
 ```
 
-推送后 GitHub Pages 会自动发布，线上站点几秒内更新。
+> **注意**：GitHub Pages 从这个仓库的 **`gh-pages` 分支**发布。
+> 只 push `main` 不会让线上站点更新——`更新并发布.command` 已自动处理这一步。
 
 ## 仓库为什么这么设计
 
 - **能 diff 的进仓库，不能 diff 的留在本地**——所以 PDF/EPUB/docx 被 `.gitignore` 排除。
 - `.nojekyll` 是必需的：文件名含 `·` 和空格，不关掉 Jekyll 会漏文件。
+- `gh-pages` 只放构建产物，md 源文件不会通过网站被公开读到。
 - 远端：`git@github.com:isawang2023/agent-ai-course.git`（走 SSH）。
